@@ -46,8 +46,14 @@ score = 0
 def detected_diretion(e) : #e : event
    # print(e) #<KeyRelease event state=0x40000 keysym=Down keycode=40 x=487 y=408>
     global velocityX , velocityY ,game_over
+    
+    if (e.keysym == "r" or e.keysym == "R"):
+        restart_game()
+        return 
+    
     if (game_over):
         return
+    
     if e.keysym =="Up" and velocityY != 1:
         velocityX = 0;
         velocityY = -1;
@@ -107,10 +113,22 @@ def draw () :
 
     if(game_over):
         canvas.create_text(WINDOW_WIDTH/2 , WINDOW_HEIGHT/2, font ="Arial 20", text =f"Game Over: {score}", fill="white")
+        canvas.create_text(WINDOW_WIDTH/2 , WINDOW_HEIGHT/2+30, font ="Arial 20", text =f"Press R to Restart", fill="white")
     else:
         canvas.create_text(30,20,font="Arial 10", text=f"Score: {score}", fill="white")
 
     window.after(200,draw) #without it, snake ll be draw one time and never move
+
+def restart_game():
+    global snake , food, snake_body,velocityX, velocityY, game_over, score
+    #Reset all vars
+    snake =Tile (5*TILE_SIZE,5*TILE_SIZE) #Snake's head
+    food =Tile (10*TILE_SIZE,10*TILE_SIZE) #food's head
+    snake_body = [] # multiple snack tiles
+    velocityX = 0 
+    velocityY =0
+    game_over = False
+    score = 0
 
 draw()
 window.bind("<KeyRelease>", detected_diretion) #keyRelease is a listner
