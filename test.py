@@ -1,6 +1,7 @@
 import tkinter as tk
 import random
 import winsound
+import json
 
 # game window
 ROWS = 25
@@ -34,6 +35,22 @@ window_y = int((screen_height/2) - (window_height/2))
 
 window.geometry(f"{window_width}x{window_height}+{window_x}+{window_y}")
 
+#score
+def load_high_score():
+    try:
+        with open("highscore.json", "r") as file:
+            data = json.load(file) # Reads the JSON file and converts it to a Python dictionary
+            return data.get("high_score", 0) #Gets the value for key "high_score" from the dictionary
+    except:
+        return 0
+
+
+def save_high_score(score):
+    data = {"high_score": score}
+    with open("highscore.json", "w") as file:
+        json.dump(data, file, indent=4)
+
+
 # initialize game
 snake = Tile(5*TILE_SIZE, 5*TILE_SIZE)
 food = Tile(10*TILE_SIZE, 10*TILE_SIZE)
@@ -42,6 +59,7 @@ velocityX = 0
 velocityY = 0
 game_over = False
 score = 0
+high_score = load_high_score()
 
 def detected_diretion(e):
     global velocityX, velocityY, game_over
@@ -67,12 +85,15 @@ def detected_diretion(e):
         velocityY = 0
 
 def move():
-    global snake, food, snake_body, game_over, score
+    global snake, food, snake_body, game_over, score, high_score
     if game_over:
         return
     
     if snake.x < 0 or snake.x >= WINDOW_WIDTH or snake.y < 0 or snake.y >= WINDOW_HEIGHT:
         game_over = True
+        if score > high_score: 
+            high_score = score
+            save_high_score(high_score)
         play_game_over_sound()
         return
         
@@ -116,13 +137,18 @@ def draw():
     if game_over:
         canvas.create_text(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, font="Arial 20", text=f"Game Over: {score}", fill="white")
         canvas.create_text(WINDOW_WIDTH/2, WINDOW_HEIGHT/2+30, font="Arial 12", text="Press R to Restart", fill="white")
+        if score == high_score : 
+            canvas.create_text(WINDOW_WIDTH/2, WINDOW_HEIGHT/2-30, font="Arial 16", text="🏆 NEW HIGH SCORE! 🏆", fill="gold")
+        
+        else:
+            canvas.create_text(WINDOW_WIDTH/2, WINDOW_HEIGHT/2-30, font="Arial 10",text=f"High Score: {high_score}", fill="yellow")
     else:
         canvas.create_text(30, 20, font="Arial 10", text=f"Score: {score}", fill="white")
 
     window.after(200, draw)
 
 def restart_game():
-    global snake, food, snake_body, velocityX, velocityY, game_over, score
+    global snake, food, snake_body, velocityX, velocityY, game_over, score, high_score
     snake = Tile(5*TILE_SIZE, 5*TILE_SIZE)
     food = Tile(10*TILE_SIZE, 10*TILE_SIZE)
     snake_body = []
@@ -130,11 +156,16 @@ def restart_game():
     velocityY = 0
     game_over = False
     score = 0
+    high_score = load_high_score()
+
+
+#Sound
 def play_eat_sound():
     winsound.Beep(1000, 100)  # High pitch beep
 
 def play_game_over_sound():
     winsound.Beep(400, 300)  # Low pitch beep
+
 
 draw()
 window.bind("<KeyRelease>", detected_diretion)
